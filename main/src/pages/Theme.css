@@ -1,0 +1,80 @@
+.theme {
+
+  width: 100%;
+  height: 100vh; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.theme.light {
+
+  background-color: #ffffff;
+  color: #000000;
+  text-shadow: 0 0 5px rgb(253, 249, 249),
+               0 0 9px rgb(0, 0, 0),
+               0 0 12px white,
+               0 0 10px black;
+
+}
+
+
+.theme.dark {
+
+  background-color: #222;
+  color: #ffffff;
+  text-shadow: 0 0 5px whitesmoke,
+                0 0 10px whitesmoke,
+                0 0 15px whitesmoke,
+                0 0 20px black;
+
+                
+}
+
+.p {
+    
+  padding: 50px;
+  margin: 90px;
+  font-size: 50px;
+
+}
+
+
+.p.light {
+
+  color: #000; 
+
+}
+
+.p.dark {
+
+  color: white;
+  
+}
+
+
+.themecon {
+
+  text-align: center;
+
+}
+
+.bttn {
+
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: blue;
+  color: white;
+
+}
+
+.bttn:hover {
+
+  background-color: red;
+
+}
+
+
+

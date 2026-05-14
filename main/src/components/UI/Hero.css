@@ -1,0 +1,73 @@
+.MHA {
+  padding: 30px;
+  background: #0b0f19;
+  min-height: 100vh;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.MHA-h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #00bfff;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #00bfff;
+}
+
+.MHA-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columns */
+  gap: 20px;
+  padding: 10px;
+}
+
+.MHA-card {
+  background: #141b2d;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 191, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.MHA-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.6);
+}
+
+.MHA-image {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.MHA-h3 {
+  margin: 10px 0 5px;
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.MHA-p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+}
+
+@media (max-width: 1200px) {
+  .MHA-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .MHA-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .MHA-list {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}

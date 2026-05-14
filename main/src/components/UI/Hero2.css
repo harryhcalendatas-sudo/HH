@@ -1,0 +1,80 @@
+.Hero2-container {
+  padding: 30px;
+  background: #0b0f19;
+  min-height: 100vh;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.Hero2 {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #00bfff;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #00bfff;
+}
+
+.Hero2-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 10px;
+}
+
+.Hero2-card {
+  background: #141b2d;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 191, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.Hero2-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.6);
+}
+
+.Hero2-card img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.Hero2-card h3 {
+  margin: 10px 0 5px;
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.Hero2-card p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+}
+
+.Hero2-loader {
+  margin-top: 50px;
+  font-size: 20px;
+  color: #aaa;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .Hero2-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .Hero2-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .Hero2-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
