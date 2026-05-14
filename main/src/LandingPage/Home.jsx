@@ -28,7 +28,7 @@ const Home = () => {
                     Hero API
                 </Link>
 
-                <Link to="/theme" className="nav-link">
+                <Link to="/Theme" className="nav-link">
                     Theme Switcher
                 </Link>
 
