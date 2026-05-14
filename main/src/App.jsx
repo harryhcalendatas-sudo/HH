@@ -20,7 +20,7 @@ const App = () => {
 
                 <Route path="/" element={<Home />} />
 
-                <Route path="/count" element={<Count />} />
+                <Route path="/Count" element={<Count />} />
 
             </Routes>        
         </BrowserRouter>
