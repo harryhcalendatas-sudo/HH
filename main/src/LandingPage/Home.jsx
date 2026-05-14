@@ -32,7 +32,7 @@ const Home = () => {
                     Theme Switcher
                 </Link>
 
-                <Link to="/count" className="nav-link">
+                <Link to="/Count" className="nav-link">
                     Counter App
                 </Link>
 
