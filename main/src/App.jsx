@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./LandingPage/Home";
-import Count from "./pages/count/Count";
+import Count from "./pages/Count/Count";
 import Theme from "./pages/Theme";
 import Hero from "./components/UI/Hero";
 import Hero2 from "./components/UI/Hero2";
