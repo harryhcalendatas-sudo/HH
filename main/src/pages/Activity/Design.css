@@ -1,0 +1,692 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f6f8;
+    color: #1f2937;
+}
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    margin: 0;
+    color: var(--ink);
+    background: radial-gradient(circle at 8% 0%, rgba(21, 122, 120, 0.12), transparent 32%), linear-gradient(135deg, #f6f8f5 0%, var(--canvas) 100%);
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.container {
+    width: min(1100px, calc(100% - 48px));
+    margin: 48px auto 64px;
+}
+
+.header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    overflow: hidden;
+    padding: 38px 42px;
+    border: 1px solid rgba(220, 229, 232, 0.9);
+    border-radius: 8px;
+    background: var(--paper);
+    box-shadow: 0 18px 40px rgba(30, 57, 61, 0.08);
+}
+
+.header::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 7px;
+    content: "";
+    background: var(--teal);
+}
+
+.school-name {
+    margin: 0 0 12px;
+    color: var(--teal);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.header h1 {
+    margin: 0 0 8px;
+    color: var(--ink);
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1;
+}
+
+.subtitle,
+.date span,
+.summary-card span,
+.student-card p {
+    color: var(--muted);
+    font-family: "Trebuchet MS", sans-serif;
+}
+
+.subtitle {
+    margin: 0;
+    font-size: 14px;
+}
+
+.date {
+    min-width: 154px;
+    padding-left: 24px;
+    border-left: 1px solid var(--line);
+    text-align: right;
+}
+
+.date span {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.date strong {
+    color: var(--teal-dark);
+    font-size: 17px;
+    white-space: nowrap;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 24px 0 30px;
+}
+
+.summary-card {
+    position: relative;
+    padding: 22px 22px 20px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: 0 8px 20px rgba(30, 57, 61, 0.04);
+}
+
+.summary-card::after {
+    position: absolute;
+    top: 0;
+    right: 18px;
+    width: 28px;
+    height: 3px;
+    content: "";
+    background: var(--gold);
+}
+
+.summary-card span {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.summary-card strong {
+    display: block;
+    color: var(--ink);
+    font-size: 30px;
+    line-height: 1;
+}
+
+.student-list h2 {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.students {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    box-shadow: 0 18px 40px rgba(30, 57, 61, 0.07);
+}
+
+.student-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 72px;
+    padding: 15px 24px;
+    border-bottom: 1px solid #edf1f1;
+    transition: background 160ms ease, padding 160ms ease;
+}
+
+.student-card:last-child {
+    border-bottom: 0;
+}
+
+.student-card:hover {
+    padding-right: 28px;
+    padding-left: 28px;
+    background: #f7fbfa;
+}
+
+.student-card h3 {
+    margin: 0 0 5px;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.student-card p {
+    margin: 0;
+    font-size: 12px;
+}
+
+.student-card strong {
+    min-width: 68px;
+    padding: 8px 10px;
+    border: 1px solid #c8e4df;
+    border-radius: 4px;
+    color: var(--teal-dark);
+    background: var(--teal-soft);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .container {
+        width: min(100% - 32px, 620px);
+        margin-top: 28px;
+    }
+
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 30px 28px;
+    }
+
+    .date {
+        width: 100%;
+        padding-top: 16px;
+        padding-left: 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+        text-align: left;
+    }
+
+    .summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        width: calc(100% - 24px);
+        margin-top: 16px;
+    }
+
+    .header {
+        padding: 26px 22px;
+    }
+
+    .summary {
+        gap: 10px;
+        margin: 16px 0 24px;
+    }
+
+    .summary-card {
+        padding: 17px 15px;
+    }
+
+    .summary-card strong {
+        font-size: 25px;
+    }
+
+    .student-card,
+    .student-card:hover {
+        padding: 14px 16px;
+    }
+}
+
+:root {
+    --ink: #17212b;
+    --muted: #6d7b86;
+    --line: #dce5e8;
+    --paper: #ffffff;
+    --canvas: #edf3f1;
+    --teal: #157a78;
+    --teal-dark: #105b5a;
+    --teal-soft: #e1f1ee;
+    --gold: #d39238;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    margin: 0;
+    color: var(--ink);
+    background:
+        radial-gradient(circle at 8% 0%, rgba(21, 122, 120, 0.12), transparent 32%),
+        linear-gradient(135deg, #f6f8f5 0%, var(--canvas) 100%);
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.container {
+    width: min(1100px, calc(100% - 48px));
+    margin: 48px auto 64px;
+}
+
+.header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    overflow: hidden;
+    padding: 38px 42px;
+    border: 1px solid rgba(220, 229, 232, 0.9);
+    border-radius: 8px;
+    background: var(--paper);
+    box-shadow: 0 18px 40px rgba(30, 57, 61, 0.08);
+}
+
+.header::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 7px;
+    content: "";
+    background: var(--teal);
+}
+
+.school-name {
+    margin: 0 0 12px;
+    color: var(--teal);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.header h1 {
+    margin: 0 0 8px;
+    color: var(--ink);
+    font-size: clamp(28px, 4vw, 44px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.subtitle,
+.date span,
+.summary-card span,
+.student-card p {
+    color: var(--muted);
+    font-family: "Trebuchet MS", sans-serif;
+}
+
+.subtitle {
+    margin: 0;
+    font-size: 14px;
+}
+
+.date {
+    min-width: 154px;
+    padding-left: 24px;
+    border-left: 1px solid var(--line);
+    text-align: right;
+}
+
+.date span {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.date strong {
+    color: var(--teal-dark);
+    font-size: 17px;
+    white-space: nowrap;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 24px 0 30px;
+}
+
+.summary-card {
+    position: relative;
+    padding: 22px 22px 20px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: 0 8px 20px rgba(30, 57, 61, 0.04);
+}
+
+.summary-card::after {
+    position: absolute;
+    top: 0;
+    right: 18px;
+    width: 28px;
+    height: 3px;
+    content: "";
+    background: var(--gold);
+}
+
+.summary-card span {
+    display: block;
+    margin-bottom: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.summary-card strong {
+    display: block;
+    color: var(--ink);
+    font-size: 30px;
+    line-height: 1;
+}
+
+.student-list h2 {
+    margin: 0 0 12px;
+    color: var(--ink);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.students {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    box-shadow: 0 18px 40px rgba(30, 57, 61, 0.07);
+}
+
+.student-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 72px;
+    padding: 15px 24px;
+    border-bottom: 1px solid #edf1f1;
+    transition: background 160ms ease, padding 160ms ease;
+}
+
+.student-card:last-child {
+    border-bottom: 0;
+}
+
+.student-card:hover {
+    padding-right: 28px;
+    padding-left: 28px;
+    background: #f7fbfa;
+}
+
+.student-card h3 {
+    margin: 0 0 5px;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.student-card p {
+    margin: 0;
+    font-size: 12px;
+}
+
+.student-card strong {
+    min-width: 68px;
+    padding: 8px 10px;
+    border: 1px solid #c8e4df;
+    border-radius: 4px;
+    color: var(--teal-dark);
+    background: var(--teal-soft);
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .container {
+        width: min(100% - 32px, 620px);
+        margin-top: 28px;
+    }
+
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 30px 28px;
+    }
+
+    .date {
+        width: 100%;
+        padding-top: 16px;
+        padding-left: 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+        text-align: left;
+    }
+
+    .summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        width: calc(100% - 24px);
+        margin-top: 16px;
+    }
+
+    .header {
+        padding: 26px 22px;
+    }
+
+    .summary {
+        gap: 10px;
+        margin: 16px 0 24px;
+    }
+
+    .summary-card {
+        padding: 17px 15px;
+    }
+
+    .summary-card strong {
+        font-size: 25px;
+    }
+
+    .student-card,
+    .student-card:hover {
+        padding: 14px 16px;
+    }
+}
+
+/* Header */
+
+.header {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e5e7eb;
+}
+
+.school-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: #64748b;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.header h1 {
+    font-size: 28px;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.date {
+    text-align: right;
+}
+
+.date span {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.date strong {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Summary */
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.summary-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.summary-card span {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.summary-card strong {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* Student list */
+
+.student-list h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #1f2937;
+}
+
+.students {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.student-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #eef0f2;
+    transition: background 0.15s ease;
+}
+
+.student-card:last-child {
+    border-bottom: none;
+}
+
+.student-card:hover {
+    background: #f8fafc;
+}
+
+.student-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.student-card p {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.student-card p.unassigned {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.student-card strong {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 52px;
+    text-align: right;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.student-card strong.honor {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+    .summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .date {
+        text-align: left;
+    }
+}
+
+@media (max-width: 500px) {
+    .summary {
+        grid-template-columns: 1fr;
+    }
+
+    .student-card {
+        padding: 14px 16px;
+    }
+}
