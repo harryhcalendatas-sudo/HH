@@ -5,6 +5,7 @@ import Theme from "./pages/Theme";
 import Hero from "./components/UI/Hero";
 import Hero2 from "./components/UI/Hero2";
 import Activity from "./pages/Activity/Calendatas_Harry_3A..js";
+import Dashboard from "./pages/Activity 2/Dashboard";
 
 
 const App = () => {
@@ -18,7 +19,7 @@ const App = () => {
 
                 <Route path="/Theme" element={<Theme />} />
 
-                <Route path="/" element={<Activity />} />
+                <Route path="/" element={<Dashboard />} />
 
                 <Route path="/Home" element={<Home />} />
 
