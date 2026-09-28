@@ -48,8 +48,8 @@ function Dashboard() {
               <View style={styles.weekLabels}>{["M", "T", "W", "T", "F", "S", "S"].map((day, i) => <Text key={i} style={styles.weekLabel}>{day}</Text>)}</View>
             </View>
             <View style={styles.profileRow}>
-              <View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View>
-              <View style={styles.profileCopy}><Text style={styles.profileName}>Alex Morgan</Text><Text style={styles.profileTier}>Personal workspace</Text></View>
+              <View style={styles.avatar}><Text style={styles.avatarText}>H</Text></View>
+              <View style={styles.profileCopy}><Text style={styles.profileName}>Harry Calendatas</Text><Text style={styles.profileTier}>Personal workspace</Text></View>
               <Text style={styles.profileMore}>···</Text>
             </View>
           </View>
@@ -68,7 +68,7 @@ function Dashboard() {
             <View style={styles.headingRow}>
               <View>
                 <Label style={styles.dateLabel}>TUESDAY, SEPTEMBER 29</Label>
-                <Text style={styles.heading}>Good morning, Alex<Text style={styles.headingPeriod}>.</Text></Text>
+                <Text style={styles.heading}>Good morning, Harry<Text style={styles.headingPeriod}>.</Text></Text>
                 <Text style={styles.subheading}>A little progress adds up. Here’s your day at a glance.</Text>
               </View>
               <View style={styles.dayPicker}><Text style={styles.dayPickerText}>Today</Text><Text style={styles.dayPickerArrow}>⌄</Text></View>
