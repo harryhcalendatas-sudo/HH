@@ -10,9 +10,12 @@ export type Activity = {
 export type ActivityData = {
   activities: Activity[];
   completionsByDate: Record<string, number[]>;
+  dailyGoal: number;
 };
 
 const STORAGE_KEY = 'activity232.activity-data.v1';
+export const DEFAULT_DAILY_GOAL = 3;
+export const MAX_DAILY_GOAL = 99;
 
 export const DEFAULT_ACTIVITIES: Activity[] = [
   { id: 1, time: '09:30', label: 'Workout', tint: '#8b5cf6' },
@@ -44,6 +47,11 @@ function parseActivityData(value: unknown): ActivityData {
     !isRecord(value) ||
     !Array.isArray(value.activities) ||
     !isRecord(value.completionsByDate) ||
+    (value.dailyGoal !== undefined &&
+      (typeof value.dailyGoal !== 'number' ||
+        !Number.isInteger(value.dailyGoal) ||
+        value.dailyGoal < 1 ||
+        value.dailyGoal > MAX_DAILY_GOAL)) ||
     !value.activities.every(isActivity)
   ) {
     throw new Error('Saved activity data has an invalid format.');
@@ -67,7 +75,11 @@ function parseActivityData(value: unknown): ActivityData {
     completionsByDate[date] = [...new Set(completions)];
   }
 
-  return { activities, completionsByDate };
+  return {
+    activities,
+    completionsByDate,
+    dailyGoal: value.dailyGoal ?? DEFAULT_DAILY_GOAL,
+  };
 }
 
 export async function loadActivityData(): Promise<ActivityData> {
@@ -76,6 +88,7 @@ export async function loadActivityData(): Promise<ActivityData> {
     return {
       activities: DEFAULT_ACTIVITIES.map((activity) => ({ ...activity })),
       completionsByDate: {},
+      dailyGoal: DEFAULT_DAILY_GOAL,
     };
   }
 

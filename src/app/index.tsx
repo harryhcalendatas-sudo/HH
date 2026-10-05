@@ -16,7 +16,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
   DEFAULT_ACTIVITIES,
+  DEFAULT_DAILY_GOAL,
   loadActivityData,
+  MAX_DAILY_GOAL,
   saveActivityData,
   type Activity,
 } from './activity-storage';
@@ -60,6 +62,7 @@ export default function ActivityScreen() {
   const palette = isDark ? darkPalette : lightPalette;
   const [activities, setActivities] = useState<Activity[]>(DEFAULT_ACTIVITIES);
   const [completionsByDate, setCompletionsByDate] = useState<Record<string, number[]>>({});
+  const [dailyGoal, setDailyGoal] = useState(DEFAULT_DAILY_GOAL);
   const [isStorageReady, setIsStorageReady] = useState(false);
   const [storageError, setStorageError] = useState('');
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -78,8 +81,7 @@ export default function ActivityScreen() {
     .filter((item) => completedItems.includes(item.id))
     .sort((first, second) => first.time.localeCompare(second.time));
   const todayIndex = (today.getDay() + 6) % 7;
-  const dailyGoal = activities.length;
-  const goalProgress = dailyGoal === 0 ? 0 : doneItems.length / dailyGoal;
+  const goalProgress = Math.min(doneItems.length / dailyGoal, 1);
 
   const loadSavedData = useCallback(async () => {
     setStorageError('');
@@ -88,6 +90,7 @@ export default function ActivityScreen() {
       const data = await loadActivityData();
       setActivities(data.activities);
       setCompletionsByDate(data.completionsByDate);
+      setDailyGoal(data.dailyGoal);
       nextActivityId.current =
         data.activities.reduce((maxId, activity) => Math.max(maxId, activity.id), 0) + 1;
       setIsStorageReady(true);
@@ -107,7 +110,7 @@ export default function ActivityScreen() {
       return;
     }
 
-    const data = { activities, completionsByDate };
+    const data = { activities, completionsByDate, dailyGoal };
     saveQueue.current = saveQueue.current
       .then(() => saveActivityData(data))
       .then(() => setStorageError(''))
@@ -115,7 +118,13 @@ export default function ActivityScreen() {
         console.error('Failed to save activity data.', error);
         setStorageError('Could not save your latest changes. Check storage and try again.');
       });
-  }, [activities, completionsByDate, isStorageReady]);
+  }, [activities, completionsByDate, dailyGoal, isStorageReady]);
+
+  const changeDailyGoal = (amount: number) => {
+    setDailyGoal((currentGoal) =>
+      Math.max(1, Math.min(MAX_DAILY_GOAL, currentGoal + amount)),
+    );
+  };
 
   const toggleActivity = (id: number) => {
     setCompletionsByDate((current) => {
@@ -263,14 +272,54 @@ export default function ActivityScreen() {
               <ThemedText type="smallBold" style={[styles.goalTitle, { color: palette.text }]}>
                 Daily goal
               </ThemedText>
-              <ThemedText type="small" style={[styles.goalCount, { color: palette.eyebrow }]}>
-                {doneItems.length} of {dailyGoal}
-              </ThemedText>
+              <ThemedView style={styles.goalStepper}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Decrease daily goal"
+                  disabled={!isStorageReady || dailyGoal <= 1}
+                  onPress={() => changeDailyGoal(-1)}
+                  style={[
+                    styles.goalStepButton,
+                    {
+                      backgroundColor: palette.toggleBackground,
+                      borderColor: palette.border,
+                      opacity: !isStorageReady || dailyGoal <= 1 ? 0.45 : 1,
+                    },
+                  ]}>
+                  <ThemedText type="default" style={[styles.goalStepText, { color: palette.text }]}>
+                    −
+                  </ThemedText>
+                </Pressable>
+                <ThemedText type="small" style={[styles.goalTarget, { color: palette.eyebrow }]}>
+                  {dailyGoal} / day
+                </ThemedText>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Increase daily goal"
+                  disabled={!isStorageReady || dailyGoal >= MAX_DAILY_GOAL}
+                  onPress={() => changeDailyGoal(1)}
+                  style={[
+                    styles.goalStepButton,
+                    {
+                      backgroundColor: palette.toggleBackground,
+                      borderColor: palette.border,
+                      opacity: !isStorageReady || dailyGoal >= MAX_DAILY_GOAL ? 0.45 : 1,
+                    },
+                  ]}>
+                  <ThemedText type="default" style={[styles.goalStepText, { color: palette.text }]}>
+                    +
+                  </ThemedText>
+                </Pressable>
+              </ThemedView>
             </ThemedView>
             <ThemedView
               accessibilityRole="progressbar"
               accessibilityLabel="Daily activity goal"
-              accessibilityValue={{ min: 0, max: dailyGoal, now: doneItems.length }}
+              accessibilityValue={{
+                min: 0,
+                max: dailyGoal,
+                now: Math.min(doneItems.length, dailyGoal),
+              }}
               style={[styles.goalTrack, { backgroundColor: palette.row }]}>
               <ThemedView
                 style={[
@@ -284,10 +333,10 @@ export default function ActivityScreen() {
             </ThemedView>
             <ThemedText type="small" style={[styles.goalNote, { color: palette.mutedText }]}>
               {goalProgress === 1
-                ? 'Daily goal complete. Great work!'
-                : `${dailyGoal - doneItems.length} ${
-                    dailyGoal - doneItems.length === 1 ? 'activity' : 'activities'
-                  } left to reach your goal`}
+                ? `${doneItems.length} completed · Daily goal reached!`
+                : `${doneItems.length} of ${dailyGoal} complete · ${
+                    dailyGoal - doneItems.length
+                  } to go`}
             </ThemedText>
           </ThemedView>
 
@@ -738,8 +787,27 @@ const styles = StyleSheet.create({
   goalTitle: {
     letterSpacing: 0.4,
   },
-  goalCount: {
-    fontSize: 13,
+  goalStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  goalStepButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goalStepText: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  goalTarget: {
+    minWidth: 48,
+    textAlign: 'center',
+    fontSize: 12,
     fontWeight: '700',
   },
   goalTrack: {
