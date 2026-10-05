@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Appearance, Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,6 +15,17 @@ export default function ActivityScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme !== 'light';
   const palette = isDark ? darkPalette : lightPalette;
+  const [completedItems, setCompletedItems] = useState<string[]>([]);
+  const upcomingItems = activityItems.filter((item) => !completedItems.includes(item.label));
+  const doneItems = activityItems.filter((item) => completedItems.includes(item.label));
+
+  const toggleActivity = (label: string) => {
+    setCompletedItems((currentItems) =>
+      currentItems.includes(label)
+        ? currentItems.filter((item) => item !== label)
+        : [...currentItems, label],
+    );
+  };
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: palette.background }]}>
@@ -84,24 +96,91 @@ export default function ActivityScreen() {
             Upcoming
           </ThemedText>
 
-          {activityItems.map((item) => (
-            <ThemedView
-              key={item.label}
-              style={[
-                styles.activityRow,
-                { backgroundColor: palette.row, borderColor: palette.border },
-              ]}>
-              <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
-              <ThemedText
-                type="default"
-                style={[styles.activityTime, { color: palette.mutedText }]}>
-                {item.time}
-              </ThemedText>
-              <ThemedText type="default" style={[styles.activityLabel, { color: palette.text }]}>
-                {item.label}
-              </ThemedText>
-            </ThemedView>
-          ))}
+          {upcomingItems.length === 0 ? (
+            <ThemedText type="small" style={[styles.emptyMessage, { color: palette.mutedText }]}>
+              All activities complete. Nice work!
+            </ThemedText>
+          ) : (
+            upcomingItems.map((item) => (
+              <Pressable
+                key={item.label}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: false }}
+                accessibilityLabel={`Mark ${item.label} complete`}
+                onPress={() => toggleActivity(item.label)}
+                style={({ pressed }) => [
+                  styles.activityRow,
+                  {
+                    backgroundColor: palette.row,
+                    borderColor: palette.border,
+                    opacity: pressed ? 0.72 : 1,
+                  },
+                ]}>
+                <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
+                <ThemedText
+                  type="default"
+                  style={[styles.activityTime, { color: palette.mutedText }]}>
+                  {item.time}
+                </ThemedText>
+                <ThemedText type="default" style={[styles.activityLabel, { color: palette.text }]}>
+                  {item.label}
+                </ThemedText>
+                <ThemedView style={[styles.checkCircle, { borderColor: palette.mutedText }]} />
+              </Pressable>
+            ))
+          )}
+
+          {doneItems.length > 0 && (
+            <>
+              <ThemedView style={styles.doneHeading}>
+                <ThemedText type="smallBold" style={[styles.doneTitle, { color: palette.text }]}>
+                  Done
+                </ThemedText>
+                <ThemedText type="small" style={[styles.doneCount, { color: palette.success }]}>
+                  {doneItems.length}
+                </ThemedText>
+              </ThemedView>
+
+              {doneItems.map((item) => (
+                <Pressable
+                  key={item.label}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: true }}
+                  accessibilityLabel={`Mark ${item.label} incomplete`}
+                  onPress={() => toggleActivity(item.label)}
+                  style={({ pressed }) => [
+                    styles.activityRow,
+                    styles.completedRow,
+                    {
+                      backgroundColor: palette.row,
+                      borderColor: palette.border,
+                      opacity: pressed ? 0.72 : 1,
+                    },
+                  ]}>
+                  <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
+                  <ThemedText
+                    type="default"
+                    style={[styles.activityTime, { color: palette.mutedText }]}>
+                    {item.time}
+                  </ThemedText>
+                  <ThemedText
+                    type="default"
+                    style={[
+                      styles.activityLabel,
+                      styles.completedLabel,
+                      { color: palette.mutedText },
+                    ]}>
+                    {item.label}
+                  </ThemedText>
+                  <ThemedText
+                    type="smallBold"
+                    style={[styles.checkMark, { color: palette.success }]}>
+                    ✓
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </>
+          )}
         </ThemedView>
       </SafeAreaView>
     </ThemedView>
@@ -118,6 +197,7 @@ const darkPalette = {
   mutedText: '#cbd5e1',
   eyebrow: '#a5b4fc',
   toggleBackground: '#1e293b',
+  success: '#34d399',
 };
 
 const lightPalette = {
@@ -130,6 +210,7 @@ const lightPalette = {
   mutedText: '#5f6b7d',
   eyebrow: '#635bdb',
   toggleBackground: '#eef2ff',
+  success: '#059669',
 };
 
 const styles = StyleSheet.create({
@@ -229,6 +310,22 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     letterSpacing: 0.7,
   },
+  emptyMessage: {
+    paddingVertical: 10,
+  },
+  doneHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 6,
+    marginBottom: 12,
+  },
+  doneTitle: {
+    letterSpacing: 0.4,
+  },
+  doneCount: {
+    fontSize: 12,
+  },
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -237,6 +334,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 10,
     borderWidth: 1,
+  },
+  completedRow: {
+    marginBottom: 0,
+  },
+  completedLabel: {
+    textDecorationLine: 'line-through',
+  },
+  checkCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+  },
+  checkMark: {
+    width: 18,
+    textAlign: 'center',
+    fontSize: 15,
+    lineHeight: 20,
   },
   dot: {
     width: 10,
