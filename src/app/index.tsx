@@ -21,7 +21,7 @@ import {
   MAX_DAILY_GOAL,
   saveActivityData,
   type Activity,
-} from './activity-storage';
+} from '../lib/activity-storage';
 
 const activityOptions = [
   { label: 'Workout', tint: '#8b5cf6' },
@@ -58,7 +58,8 @@ function getCurrentWeekDates(today: Date): Date[] {
 
 export default function ActivityScreen() {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme !== 'light';
+  const [themeOverride, setThemeOverride] = useState<'light' | 'dark' | null>(null);
+  const isDark = (themeOverride ?? colorScheme) !== 'light';
   const palette = isDark ? darkPalette : lightPalette;
   const [activities, setActivities] = useState<Activity[]>(DEFAULT_ACTIVITIES);
   const [completionsByDate, setCompletionsByDate] = useState<Record<string, number[]>>({});
@@ -66,6 +67,7 @@ export default function ActivityScreen() {
   const [isStorageReady, setIsStorageReady] = useState(false);
   const [storageError, setStorageError] = useState('');
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [activityToDelete, setActivityToDelete] = useState<Activity | null>(null);
   const [selectedActivity, setSelectedActivity] = useState(activityOptions[0]);
   const [activityTime, setActivityTime] = useState('19:00');
   const [formError, setFormError] = useState('');
@@ -126,6 +128,12 @@ export default function ActivityScreen() {
     );
   };
 
+  const toggleTheme = () => {
+    const nextTheme = isDark ? 'light' : 'dark';
+    setThemeOverride(nextTheme);
+    Appearance.setColorScheme(nextTheme);
+  };
+
   const toggleActivity = (id: number) => {
     setCompletionsByDate((current) => {
       const currentItems = current[todayKey] ?? [];
@@ -140,6 +148,26 @@ export default function ActivityScreen() {
       }
       return updated;
     });
+  };
+
+  const deleteActivity = () => {
+    if (!activityToDelete) {
+      return;
+    }
+
+    const idToDelete = activityToDelete.id;
+    setActivities((current) => current.filter((item) => item.id !== idToDelete));
+    setCompletionsByDate((current) => {
+      const updated: Record<string, number[]> = {};
+      for (const [date, ids] of Object.entries(current)) {
+        const remainingIds = ids.filter((id) => id !== idToDelete);
+        if (remainingIds.length > 0) {
+          updated[date] = remainingIds;
+        }
+      }
+      return updated;
+    });
+    setActivityToDelete(null);
   };
 
   const addActivity = () => {
@@ -219,7 +247,7 @@ export default function ActivityScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-                onPress={() => Appearance.setColorScheme(isDark ? 'light' : 'dark')}
+                onPress={toggleTheme}
                 style={({ pressed }) => [
                   styles.modeToggle,
                   {
@@ -444,38 +472,62 @@ export default function ActivityScreen() {
               <ThemedText
                 type="small"
                 style={[styles.emptyMessage, { color: palette.mutedText }]}>
-                All activities complete. Nice work!
+                {activities.length === 0
+                  ? 'No activities yet. Add one to get started.'
+                  : 'All activities complete. Nice work!'}
               </ThemedText>
             ) : (
               upcomingItems.map((item) => (
-                <Pressable
+                <ThemedView
                   key={item.id}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: false }}
-                  accessibilityLabel={`Mark ${item.label} complete`}
-                  disabled={!isStorageReady}
-                  onPress={() => toggleActivity(item.id)}
-                  style={({ pressed }) => [
+                  style={[
                     styles.activityRow,
                     {
                       backgroundColor: palette.row,
                       borderColor: palette.border,
-                      opacity: !isStorageReady ? 0.5 : pressed ? 0.72 : 1,
                     },
                   ]}>
-                  <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
-                  <ThemedText
-                    type="default"
-                    style={[styles.activityTime, { color: palette.mutedText }]}>
-                    {item.time}
-                  </ThemedText>
-                  <ThemedText
-                    type="default"
-                    style={[styles.activityLabel, { color: palette.text }]}>
-                    {item.label}
-                  </ThemedText>
-                  <ThemedView style={[styles.checkCircle, { borderColor: palette.mutedText }]} />
-                </Pressable>
+                  <Pressable
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: false }}
+                    accessibilityLabel={`Mark ${item.label} complete`}
+                    disabled={!isStorageReady}
+                    onPress={() => toggleActivity(item.id)}
+                    style={({ pressed }) => [
+                      styles.activityMain,
+                      { opacity: !isStorageReady ? 0.5 : pressed ? 0.72 : 1 },
+                    ]}>
+                    <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
+                    <ThemedText
+                      type="default"
+                      style={[styles.activityTime, { color: palette.mutedText }]}>
+                      {item.time}
+                    </ThemedText>
+                    <ThemedText
+                      type="default"
+                      style={[styles.activityLabel, { color: palette.text }]}>
+                      {item.label}
+                    </ThemedText>
+                    <ThemedView
+                      style={[styles.checkCircle, { borderColor: palette.mutedText }]}
+                    />
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Delete ${item.label}`}
+                    disabled={!isStorageReady}
+                    onPress={() => setActivityToDelete(item)}
+                    style={({ pressed }) => [
+                      styles.deleteButton,
+                      { opacity: !isStorageReady ? 0.5 : pressed ? 0.65 : 1 },
+                    ]}>
+                    <ThemedText
+                      type="default"
+                      style={[styles.deleteButtonText, { color: palette.danger }]}>
+                      ×
+                    </ThemedText>
+                  </Pressable>
+                </ThemedView>
               ))
             )}
 
@@ -493,43 +545,63 @@ export default function ActivityScreen() {
                 </ThemedView>
 
                 {doneItems.map((item) => (
-                  <Pressable
+                  <ThemedView
                     key={item.id}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: true }}
-                    accessibilityLabel={`Mark ${item.label} incomplete`}
-                    disabled={!isStorageReady}
-                    onPress={() => toggleActivity(item.id)}
-                    style={({ pressed }) => [
+                    style={[
                       styles.activityRow,
                       styles.completedRow,
                       {
                         backgroundColor: palette.row,
                         borderColor: palette.border,
-                        opacity: !isStorageReady ? 0.5 : pressed ? 0.72 : 1,
                       },
                     ]}>
-                    <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
-                    <ThemedText
-                      type="default"
-                      style={[styles.activityTime, { color: palette.mutedText }]}>
-                      {item.time}
-                    </ThemedText>
-                    <ThemedText
-                      type="default"
-                      style={[
-                        styles.activityLabel,
-                        styles.completedLabel,
-                        { color: palette.mutedText },
+                    <Pressable
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: true }}
+                      accessibilityLabel={`Mark ${item.label} incomplete`}
+                      disabled={!isStorageReady}
+                      onPress={() => toggleActivity(item.id)}
+                      style={({ pressed }) => [
+                        styles.activityMain,
+                        { opacity: !isStorageReady ? 0.5 : pressed ? 0.72 : 1 },
                       ]}>
-                      {item.label}
-                    </ThemedText>
-                    <ThemedText
-                      type="smallBold"
-                      style={[styles.checkMark, { color: palette.success }]}>
-                      ✓
-                    </ThemedText>
-                  </Pressable>
+                      <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
+                      <ThemedText
+                        type="default"
+                        style={[styles.activityTime, { color: palette.mutedText }]}>
+                        {item.time}
+                      </ThemedText>
+                      <ThemedText
+                        type="default"
+                        style={[
+                          styles.activityLabel,
+                          styles.completedLabel,
+                          { color: palette.mutedText },
+                        ]}>
+                        {item.label}
+                      </ThemedText>
+                      <ThemedText
+                        type="smallBold"
+                        style={[styles.checkMark, { color: palette.success }]}>
+                        ✓
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Delete ${item.label}`}
+                      disabled={!isStorageReady}
+                      onPress={() => setActivityToDelete(item)}
+                      style={({ pressed }) => [
+                        styles.deleteButton,
+                        { opacity: !isStorageReady ? 0.5 : pressed ? 0.65 : 1 },
+                      ]}>
+                      <ThemedText
+                        type="default"
+                        style={[styles.deleteButtonText, { color: palette.danger }]}>
+                        ×
+                      </ThemedText>
+                    </Pressable>
+                  </ThemedView>
                 ))}
               </>
             )}
@@ -637,6 +709,50 @@ export default function ActivityScreen() {
           </ThemedView>
         </KeyboardAvoidingView>
       </Modal>
+      <Modal
+        visible={activityToDelete !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActivityToDelete(null)}>
+        <ThemedView style={styles.modalBackdrop}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel deleting activity"
+            onPress={() => setActivityToDelete(null)}
+            style={StyleSheet.absoluteFill}
+          />
+          <ThemedView
+            style={[
+              styles.modalCard,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}>
+            <ThemedText type="subtitle" style={[styles.modalTitle, { color: palette.text }]}>
+              Delete activity?
+            </ThemedText>
+            <ThemedText type="small" style={[styles.deleteWarning, { color: palette.mutedText }]}>
+              {`“${activityToDelete?.label ?? 'This activity'}” and its saved completion history will be permanently removed.`}
+            </ThemedText>
+            <ThemedView style={styles.modalActions}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setActivityToDelete(null)}
+                style={[styles.modalAction, { borderColor: palette.border }]}>
+                <ThemedText type="smallBold" style={{ color: palette.mutedText }}>
+                  Keep activity
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={deleteActivity}
+                style={[styles.modalAction, styles.deleteConfirmButton]}>
+                <ThemedText type="smallBold" style={styles.saveButtonText}>
+                  Delete
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
+      </Modal>
     </ThemedView>
   );
 }
@@ -652,6 +768,7 @@ const darkPalette = {
   eyebrow: '#a5b4fc',
   toggleBackground: '#1e293b',
   success: '#34d399',
+  danger: '#f87171',
 };
 
 const lightPalette = {
@@ -665,6 +782,7 @@ const lightPalette = {
   eyebrow: '#635bdb',
   toggleBackground: '#eef2ff',
   success: '#059669',
+  danger: '#dc2626',
 };
 
 const styles = StyleSheet.create({
@@ -903,6 +1021,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
   },
+  activityMain: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   completedRow: {
     marginBottom: 0,
   },
@@ -936,6 +1060,18 @@ const styles = StyleSheet.create({
   },
   activityLabel: {
     flex: 1,
+  },
+  deleteButton: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    borderRadius: 10,
+  },
+  deleteButtonText: {
+    fontSize: 24,
+    lineHeight: 26,
   },
   activityPanelHeader: {
     flexDirection: 'row',
@@ -1003,6 +1139,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginBottom: 8,
   },
+  deleteWarning: {
+    fontSize: 14,
+    lineHeight: 22,
+  },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -1023,5 +1163,9 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#ffffff',
+  },
+  deleteConfirmButton: {
+    backgroundColor: '#dc2626',
+    borderColor: '#dc2626',
   },
 });
