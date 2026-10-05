@@ -15,9 +15,18 @@ export default function ActivityScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.headerCard}>
-          <ThemedText type="small" style={styles.labelText}>
-            Today
-          </ThemedText>
+          <ThemedView style={styles.headerTopRow}>
+            <ThemedText type="small" style={styles.labelText}>
+              Today
+            </ThemedText>
+
+            <ThemedView style={styles.badge}>
+              <ThemedText type="small" style={styles.badgeText}>
+                +18%
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+
           <ThemedText type="subtitle" style={styles.title}>
             Activity
           </ThemedText>
@@ -70,7 +79,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#070b17',
   },
   safeArea: {
     flex: 1,
@@ -78,25 +87,45 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   headerCard: {
-    borderRadius: 28,
-    padding: 24,
-    backgroundColor: '#111827',
+    borderRadius: 30,
+    padding: 22,
+    backgroundColor: '#0f172a',
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.2)',
+    borderColor: 'rgba(148, 163, 184, 0.18)',
     shadowColor: '#8b5cf6',
     shadowOpacity: 0.18,
-    shadowRadius: 26,
-    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    overflow: 'hidden',
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
   labelText: {
     color: '#a5b4fc',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    marginBottom: 8,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(52, 211, 153, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(52, 211, 153, 0.55)',
+  },
+  badgeText: {
+    color: '#6ee7b7',
+    fontSize: 11,
+    letterSpacing: 0.4,
   },
   title: {
     color: '#f8fafc',
-    marginBottom: 20,
+    marginBottom: 18,
+    fontWeight: '700',
   },
   statsRow: {
     flexDirection: 'row',
@@ -104,10 +133,12 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#111827',
     borderRadius: 18,
     paddingVertical: 16,
     paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.14)',
   },
   statCardAccent: {
     flex: 1,
@@ -115,6 +146,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 14,
     backgroundColor: '#8b5cf6',
+    shadowColor: '#a78bfa',
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
   },
   statLabel: {
     color: '#cbd5e1',
@@ -135,30 +170,41 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   panel: {
-    backgroundColor: '#111827',
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: '#101827',
+    borderRadius: 26,
+    padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.2)',
+    borderColor: 'rgba(148,163,184,0.18)',
+    shadowColor: '#020617',
+    shadowOpacity: 0.24,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
   },
   panelTitle: {
     color: '#e2e8f0',
     marginBottom: 14,
+    letterSpacing: 0.7,
   },
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#0b1220',
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 12,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.08)',
   },
   dot: {
     width: 10,
     height: 10,
     borderRadius: 999,
     marginRight: 12,
+    shadowColor: '#fff',
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
   },
   activityTime: {
     width: 62,
