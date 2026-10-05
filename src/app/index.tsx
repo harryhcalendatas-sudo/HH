@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Appearance, Pressable, StyleSheet, useColorScheme } from 'react-native';
+import { Appearance, Pressable, ScrollView, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -11,6 +11,16 @@ const activityItems = [
   { time: '18:45', label: 'Walk', tint: '#34d399' },
 ];
 
+const weekDays = [
+  { label: 'M', name: 'Monday' },
+  { label: 'T', name: 'Tuesday' },
+  { label: 'W', name: 'Wednesday' },
+  { label: 'T', name: 'Thursday' },
+  { label: 'F', name: 'Friday' },
+  { label: 'S', name: 'Saturday' },
+  { label: 'S', name: 'Sunday' },
+];
+
 export default function ActivityScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme !== 'light';
@@ -18,6 +28,7 @@ export default function ActivityScreen() {
   const [completedItems, setCompletedItems] = useState<string[]>([]);
   const upcomingItems = activityItems.filter((item) => !completedItems.includes(item.label));
   const doneItems = activityItems.filter((item) => completedItems.includes(item.label));
+  const todayIndex = (new Date().getDay() + 6) % 7;
 
   const toggleActivity = (label: string) => {
     setCompletedItems((currentItems) =>
@@ -30,127 +41,152 @@ export default function ActivityScreen() {
   return (
     <ThemedView style={[styles.container, { backgroundColor: palette.background }]}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView
-          style={[
-            styles.headerCard,
-            { backgroundColor: palette.surface, borderColor: palette.border },
-          ]}>
-          <ThemedView style={styles.headerTopRow}>
-            <ThemedText type="small" style={[styles.labelText, { color: palette.eyebrow }]}>
-              Today
-            </ThemedText>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-              onPress={() => Appearance.setColorScheme(isDark ? 'light' : 'dark')}
-              style={({ pressed }) => [
-                styles.modeToggle,
-                {
-                  backgroundColor: palette.toggleBackground,
-                  borderColor: palette.border,
-                  opacity: pressed ? 0.75 : 1,
-                },
-              ]}>
-              <ThemedText type="small" style={[styles.modeToggleText, { color: palette.text }]}>
-                {isDark ? '☀  Light' : '☾  Dark'}
+        <ScrollView contentContainerStyle={styles.content}>
+          <ThemedView
+            style={[
+              styles.headerCard,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}>
+            <ThemedView style={styles.headerTopRow}>
+              <ThemedText type="small" style={[styles.labelText, { color: palette.eyebrow }]}>
+                Today
               </ThemedText>
-            </Pressable>
-          </ThemedView>
 
-          <ThemedText type="subtitle" style={[styles.title, { color: palette.text }]}>
-            Activity
-          </ThemedText>
-
-          <ThemedView style={styles.statsRow}>
-            <ThemedView
-              style={[
-                styles.statCard,
-                { backgroundColor: palette.surfaceInset, borderColor: palette.border },
-              ]}>
-              <ThemedText type="small" style={[styles.statLabel, { color: palette.mutedText }]}>
-                Streak
-              </ThemedText>
-              <ThemedText type="title" style={[styles.statValue, { color: palette.text }]}>
-                12d
-              </ThemedText>
-            </ThemedView>
-
-            <ThemedView style={styles.statCardAccent}>
-              <ThemedText type="small" style={styles.statLabelAccent}>
-                Focus
-              </ThemedText>
-              <ThemedText type="title" style={styles.statValueAccent}>
-                4.8h
-              </ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-
-        <ThemedView
-          style={[
-            styles.panel,
-            { backgroundColor: palette.surface, borderColor: palette.border },
-          ]}>
-          <ThemedText type="smallBold" style={[styles.panelTitle, { color: palette.text }]}>
-            Upcoming
-          </ThemedText>
-
-          {upcomingItems.length === 0 ? (
-            <ThemedText type="small" style={[styles.emptyMessage, { color: palette.mutedText }]}>
-              All activities complete. Nice work!
-            </ThemedText>
-          ) : (
-            upcomingItems.map((item) => (
               <Pressable
-                key={item.label}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: false }}
-                accessibilityLabel={`Mark ${item.label} complete`}
-                onPress={() => toggleActivity(item.label)}
+                accessibilityRole="button"
+                accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+                onPress={() => Appearance.setColorScheme(isDark ? 'light' : 'dark')}
                 style={({ pressed }) => [
-                  styles.activityRow,
+                  styles.modeToggle,
                   {
-                    backgroundColor: palette.row,
+                    backgroundColor: palette.toggleBackground,
                     borderColor: palette.border,
-                    opacity: pressed ? 0.72 : 1,
+                    opacity: pressed ? 0.75 : 1,
                   },
                 ]}>
-                <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
-                <ThemedText
-                  type="default"
-                  style={[styles.activityTime, { color: palette.mutedText }]}>
-                  {item.time}
+                <ThemedText type="small" style={[styles.modeToggleText, { color: palette.text }]}>
+                  {isDark ? '☀  Light' : '☾  Dark'}
                 </ThemedText>
-                <ThemedText type="default" style={[styles.activityLabel, { color: palette.text }]}>
-                  {item.label}
-                </ThemedText>
-                <ThemedView style={[styles.checkCircle, { borderColor: palette.mutedText }]} />
               </Pressable>
-            ))
-          )}
+            </ThemedView>
 
-          {doneItems.length > 0 && (
-            <>
-              <ThemedView style={styles.doneHeading}>
-                <ThemedText type="smallBold" style={[styles.doneTitle, { color: palette.text }]}>
-                  Done
+            <ThemedText type="subtitle" style={[styles.title, { color: palette.text }]}>
+              Activity
+            </ThemedText>
+
+            <ThemedView style={styles.statsRow}>
+              <ThemedView
+                style={[
+                  styles.statCard,
+                  { backgroundColor: palette.surfaceInset, borderColor: palette.border },
+                ]}>
+                <ThemedText type="small" style={[styles.statLabel, { color: palette.mutedText }]}>
+                  Streak
                 </ThemedText>
-                <ThemedText type="small" style={[styles.doneCount, { color: palette.success }]}>
-                  {doneItems.length}
+                <ThemedText type="title" style={[styles.statValue, { color: palette.text }]}>
+                  12d
                 </ThemedText>
               </ThemedView>
 
-              {doneItems.map((item) => (
+              <ThemedView style={styles.statCardAccent}>
+                <ThemedText type="small" style={styles.statLabelAccent}>
+                  Focus
+                </ThemedText>
+                <ThemedText type="title" style={styles.statValueAccent}>
+                  4.8h
+                </ThemedText>
+              </ThemedView>
+            </ThemedView>
+          </ThemedView>
+
+          <ThemedView
+            style={[
+              styles.weekPanel,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}>
+            <ThemedView style={styles.weekHeader}>
+              <ThemedText type="smallBold" style={[styles.panelTitle, { color: palette.text }]}>
+                This week
+              </ThemedText>
+              <ThemedText type="small" style={[styles.weekCount, { color: palette.eyebrow }]}>
+                Today {doneItems.length}/{activityItems.length}
+              </ThemedText>
+            </ThemedView>
+
+            <ThemedView style={styles.weekChart}>
+              {weekDays.map((day, index) => {
+                const isToday = index === todayIndex;
+                const progress = isToday ? doneItems.length / activityItems.length : 0;
+
+                return (
+                  <ThemedView
+                    key={`${day.name}-${index}`}
+                    style={styles.dayColumn}
+                    accessibilityLabel={
+                      isToday
+                        ? `${day.name}, today, ${doneItems.length} of ${activityItems.length} activities complete`
+                        : `${day.name}, no activity history tracked`
+                    }>
+                    <ThemedView
+                      style={[
+                        styles.barTrack,
+                        { backgroundColor: palette.row },
+                        isToday && { borderColor: palette.eyebrow },
+                      ]}>
+                      <ThemedView
+                        style={[
+                          styles.barFill,
+                          {
+                            height: `${progress * 100}%`,
+                            backgroundColor: palette.eyebrow,
+                          },
+                        ]}
+                      />
+                    </ThemedView>
+                    <ThemedText
+                      type="small"
+                      style={[
+                        styles.dayLabel,
+                        { color: isToday ? palette.text : palette.mutedText },
+                        isToday && styles.todayLabel,
+                      ]}>
+                      {day.label}
+                    </ThemedText>
+                  </ThemedView>
+                );
+              })}
+            </ThemedView>
+
+            <ThemedText type="small" style={[styles.weekNote, { color: palette.mutedText }]}>
+              Today updates as you complete activities. Earlier days aren’t tracked yet.
+            </ThemedText>
+          </ThemedView>
+
+          <ThemedView
+            style={[
+              styles.panel,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}>
+            <ThemedText type="smallBold" style={[styles.panelTitle, { color: palette.text }]}>
+              Upcoming
+            </ThemedText>
+
+            {upcomingItems.length === 0 ? (
+              <ThemedText
+                type="small"
+                style={[styles.emptyMessage, { color: palette.mutedText }]}>
+                All activities complete. Nice work!
+              </ThemedText>
+            ) : (
+              upcomingItems.map((item) => (
                 <Pressable
                   key={item.label}
                   accessibilityRole="checkbox"
-                  accessibilityState={{ checked: true }}
-                  accessibilityLabel={`Mark ${item.label} incomplete`}
+                  accessibilityState={{ checked: false }}
+                  accessibilityLabel={`Mark ${item.label} complete`}
                   onPress={() => toggleActivity(item.label)}
                   style={({ pressed }) => [
                     styles.activityRow,
-                    styles.completedRow,
                     {
                       backgroundColor: palette.row,
                       borderColor: palette.border,
@@ -165,23 +201,69 @@ export default function ActivityScreen() {
                   </ThemedText>
                   <ThemedText
                     type="default"
-                    style={[
-                      styles.activityLabel,
-                      styles.completedLabel,
-                      { color: palette.mutedText },
-                    ]}>
+                    style={[styles.activityLabel, { color: palette.text }]}>
                     {item.label}
                   </ThemedText>
+                  <ThemedView style={[styles.checkCircle, { borderColor: palette.mutedText }]} />
+                </Pressable>
+              ))
+            )}
+
+            {doneItems.length > 0 && (
+              <>
+                <ThemedView style={styles.doneHeading}>
                   <ThemedText
                     type="smallBold"
-                    style={[styles.checkMark, { color: palette.success }]}>
-                    ✓
+                    style={[styles.doneTitle, { color: palette.text }]}>
+                    Done
                   </ThemedText>
-                </Pressable>
-              ))}
-            </>
-          )}
-        </ThemedView>
+                  <ThemedText type="small" style={[styles.doneCount, { color: palette.success }]}>
+                    {doneItems.length}
+                  </ThemedText>
+                </ThemedView>
+
+                {doneItems.map((item) => (
+                  <Pressable
+                    key={item.label}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: true }}
+                    accessibilityLabel={`Mark ${item.label} incomplete`}
+                    onPress={() => toggleActivity(item.label)}
+                    style={({ pressed }) => [
+                      styles.activityRow,
+                      styles.completedRow,
+                      {
+                        backgroundColor: palette.row,
+                        borderColor: palette.border,
+                        opacity: pressed ? 0.72 : 1,
+                      },
+                    ]}>
+                    <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
+                    <ThemedText
+                      type="default"
+                      style={[styles.activityTime, { color: palette.mutedText }]}>
+                      {item.time}
+                    </ThemedText>
+                    <ThemedText
+                      type="default"
+                      style={[
+                        styles.activityLabel,
+                        styles.completedLabel,
+                        { color: palette.mutedText },
+                      ]}>
+                      {item.label}
+                    </ThemedText>
+                    <ThemedText
+                      type="smallBold"
+                      style={[styles.checkMark, { color: palette.success }]}>
+                      ✓
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </>
+            )}
+          </ThemedView>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -221,8 +303,12 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  content: {
+    flexGrow: 1,
     gap: 18,
+    justifyContent: 'center',
+    paddingVertical: 16,
   },
   headerCard: {
     borderRadius: 30,
@@ -305,6 +391,56 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.24,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
+  },
+  weekPanel: {
+    borderRadius: 26,
+    padding: 18,
+    borderWidth: 1,
+  },
+  weekHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  weekCount: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  weekChart: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  dayColumn: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+  },
+  barTrack: {
+    height: 58,
+    width: 20,
+    borderRadius: 999,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  barFill: {
+    width: '100%',
+    borderRadius: 999,
+  },
+  dayLabel: {
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  todayLabel: {
+    fontWeight: '700',
+  },
+  weekNote: {
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 12,
   },
   panelTitle: {
     marginBottom: 14,
