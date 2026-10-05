@@ -1,14 +1,30 @@
-import { useState } from 'react';
-import { Appearance, Pressable, ScrollView, StyleSheet, useColorScheme } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+  Appearance,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  useColorScheme,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
 const activityItems = [
-  { time: '09:30', label: 'Workout', tint: '#8b5cf6' },
-  { time: '12:10', label: 'Focus block', tint: '#38bdf8' },
-  { time: '18:45', label: 'Walk', tint: '#34d399' },
+  { id: 1, time: '09:30', label: 'Workout', tint: '#8b5cf6' },
+  { id: 2, time: '12:10', label: 'Focus block', tint: '#38bdf8' },
+  { id: 3, time: '18:45', label: 'Walk', tint: '#34d399' },
+];
+
+const activityOptions = [
+  { label: 'Workout', tint: '#8b5cf6' },
+  { label: 'Focus block', tint: '#38bdf8' },
+  { label: 'Walk', tint: '#34d399' },
 ];
 
 const weekDays = [
@@ -25,19 +41,56 @@ export default function ActivityScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme !== 'light';
   const palette = isDark ? darkPalette : lightPalette;
-  const [completedItems, setCompletedItems] = useState<string[]>([]);
-  const upcomingItems = activityItems.filter((item) => !completedItems.includes(item.label));
-  const doneItems = activityItems.filter((item) => completedItems.includes(item.label));
+  const [activities, setActivities] = useState(activityItems);
+  const [completedItems, setCompletedItems] = useState<number[]>([]);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState(activityOptions[0]);
+  const [activityTime, setActivityTime] = useState('19:00');
+  const [formError, setFormError] = useState('');
+  const nextActivityId = useRef(activityItems.length + 1);
+  const upcomingItems = activities
+    .filter((item) => !completedItems.includes(item.id))
+    .sort((first, second) => first.time.localeCompare(second.time));
+  const doneItems = activities
+    .filter((item) => completedItems.includes(item.id))
+    .sort((first, second) => first.time.localeCompare(second.time));
   const todayIndex = (new Date().getDay() + 6) % 7;
-  const dailyGoal = activityItems.length;
-  const goalProgress = doneItems.length / dailyGoal;
+  const dailyGoal = activities.length;
+  const goalProgress = dailyGoal === 0 ? 0 : doneItems.length / dailyGoal;
 
-  const toggleActivity = (label: string) => {
+  const toggleActivity = (id: number) => {
     setCompletedItems((currentItems) =>
-      currentItems.includes(label)
-        ? currentItems.filter((item) => item !== label)
-        : [...currentItems, label],
+      currentItems.includes(id)
+        ? currentItems.filter((item) => item !== id)
+        : [...currentItems, id],
     );
+  };
+
+  const addActivity = () => {
+    const normalizedTime = activityTime.trim();
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(normalizedTime)) {
+      setFormError('Enter a valid time in 24-hour format, such as 09:30.');
+      return;
+    }
+
+    const newActivity = {
+      id: nextActivityId.current,
+      time: normalizedTime,
+      label: selectedActivity.label,
+      tint: selectedActivity.tint,
+    };
+    nextActivityId.current += 1;
+    setActivities((current) =>
+      [...current, newActivity].sort((first, second) => first.time.localeCompare(second.time)),
+    );
+    setActivityTime('19:00');
+    setFormError('');
+    setIsAddModalVisible(false);
+  };
+
+  const closeAddModal = () => {
+    setFormError('');
+    setIsAddModalVisible(false);
   };
 
   return (
@@ -148,14 +201,14 @@ export default function ActivityScreen() {
                 This week
               </ThemedText>
               <ThemedText type="small" style={[styles.weekCount, { color: palette.eyebrow }]}>
-                Today {doneItems.length}/{activityItems.length}
+                Today {doneItems.length}/{dailyGoal}
               </ThemedText>
             </ThemedView>
 
             <ThemedView style={styles.weekChart}>
               {weekDays.map((day, index) => {
                 const isToday = index === todayIndex;
-                const progress = isToday ? doneItems.length / activityItems.length : 0;
+                const progress = isToday ? goalProgress : 0;
 
                 return (
                   <ThemedView
@@ -163,7 +216,7 @@ export default function ActivityScreen() {
                     style={styles.dayColumn}
                     accessibilityLabel={
                       isToday
-                        ? `${day.name}, today, ${doneItems.length} of ${activityItems.length} activities complete`
+                        ? `${day.name}, today, ${doneItems.length} of ${dailyGoal} activities complete`
                         : `${day.name}, no activity history tracked`
                     }>
                     <ThemedView
@@ -206,9 +259,28 @@ export default function ActivityScreen() {
               styles.panel,
               { backgroundColor: palette.surface, borderColor: palette.border },
             ]}>
-            <ThemedText type="smallBold" style={[styles.panelTitle, { color: palette.text }]}>
-              Upcoming
-            </ThemedText>
+            <ThemedView style={styles.activityPanelHeader}>
+              <ThemedText
+                type="smallBold"
+                style={[styles.panelTitle, styles.activityPanelTitle, { color: palette.text }]}>
+                Upcoming
+              </ThemedText>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add activity"
+                onPress={() => {
+                  setFormError('');
+                  setIsAddModalVisible(true);
+                }}
+                style={({ pressed }) => [
+                  styles.addButton,
+                  { backgroundColor: palette.eyebrow, opacity: pressed ? 0.75 : 1 },
+                ]}>
+                <ThemedText type="default" style={styles.addButtonText}>
+                  + Add
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
 
             {upcomingItems.length === 0 ? (
               <ThemedText
@@ -219,11 +291,11 @@ export default function ActivityScreen() {
             ) : (
               upcomingItems.map((item) => (
                 <Pressable
-                  key={item.label}
+                  key={item.id}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: false }}
                   accessibilityLabel={`Mark ${item.label} complete`}
-                  onPress={() => toggleActivity(item.label)}
+                  onPress={() => toggleActivity(item.id)}
                   style={({ pressed }) => [
                     styles.activityRow,
                     {
@@ -263,11 +335,11 @@ export default function ActivityScreen() {
 
                 {doneItems.map((item) => (
                   <Pressable
-                    key={item.label}
+                    key={item.id}
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: true }}
                     accessibilityLabel={`Mark ${item.label} incomplete`}
-                    onPress={() => toggleActivity(item.label)}
+                    onPress={() => toggleActivity(item.id)}
                     style={({ pressed }) => [
                       styles.activityRow,
                       styles.completedRow,
@@ -304,6 +376,107 @@ export default function ActivityScreen() {
           </ThemedView>
         </ScrollView>
       </SafeAreaView>
+      <Modal
+        visible={isAddModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAddModal}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalBackdrop}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close add activity dialog"
+            onPress={closeAddModal}
+            style={StyleSheet.absoluteFill}
+          />
+          <ThemedView
+            style={[
+              styles.modalCard,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}>
+            <ThemedText type="subtitle" style={[styles.modalTitle, { color: palette.text }]}>
+              Add activity
+            </ThemedText>
+            <ThemedText type="small" style={[styles.modalLabel, { color: palette.mutedText }]}>
+              Choose an activity
+            </ThemedText>
+            <ThemedView style={styles.optionRow}>
+              {activityOptions.map((option) => {
+                const isSelected = selectedActivity.label === option.label;
+                return (
+                  <Pressable
+                    key={option.label}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: isSelected }}
+                    onPress={() => setSelectedActivity(option)}
+                    style={[
+                      styles.optionButton,
+                      {
+                        backgroundColor: isSelected ? palette.toggleBackground : palette.row,
+                        borderColor: isSelected ? palette.eyebrow : palette.border,
+                      },
+                    ]}>
+                    <ThemedText
+                      type="small"
+                      style={{ color: isSelected ? palette.eyebrow : palette.text }}>
+                      {option.label}
+                    </ThemedText>
+                  </Pressable>
+                );
+              })}
+            </ThemedView>
+
+            <ThemedText type="small" style={[styles.modalLabel, { color: palette.mutedText }]}>
+              Time (24-hour)
+            </ThemedText>
+            <TextInput
+              accessibilityLabel="Activity time in 24-hour format"
+              value={activityTime}
+              onChangeText={(value) => {
+                setActivityTime(value);
+                setFormError('');
+              }}
+              placeholder="19:00"
+              placeholderTextColor={palette.mutedText}
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+              style={[
+                styles.timeInput,
+                {
+                  backgroundColor: palette.row,
+                  borderColor: formError ? '#ef4444' : palette.border,
+                  color: palette.text,
+                },
+              ]}
+            />
+            {formError ? (
+              <ThemedText type="small" style={styles.formError}>
+                {formError}
+              </ThemedText>
+            ) : null}
+
+            <ThemedView style={styles.modalActions}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={closeAddModal}
+                style={[styles.modalAction, { borderColor: palette.border }]}>
+                <ThemedText type="smallBold" style={{ color: palette.mutedText }}>
+                  Cancel
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={addActivity}
+                style={[styles.modalAction, styles.saveButton]}>
+                <ThemedText type="smallBold" style={styles.saveButtonText}>
+                  Add activity
+                </ThemedText>
+              </Pressable>
+            </ThemedView>
+          </ThemedView>
+        </KeyboardAvoidingView>
+      </Modal>
     </ThemedView>
   );
 }
@@ -575,5 +748,92 @@ const styles = StyleSheet.create({
   },
   activityLabel: {
     flex: 1,
+  },
+  activityPanelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  activityPanelTitle: {
+    marginBottom: 0,
+  },
+  addButton: {
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    borderRadius: 999,
+  },
+  addButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: 'rgba(2, 6, 23, 0.64)',
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 420,
+    padding: 22,
+    borderRadius: 26,
+    borderWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 24,
+    lineHeight: 30,
+    marginBottom: 18,
+  },
+  modalLabel: {
+    marginBottom: 9,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 18,
+  },
+  optionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  timeInput: {
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  formError: {
+    color: '#ef4444',
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 14,
+  },
+  modalAction: {
+    minHeight: 42,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  saveButton: {
+    backgroundColor: '#8b5cf6',
+    borderColor: '#8b5cf6',
+  },
+  saveButtonText: {
+    color: '#ffffff',
   },
 });
