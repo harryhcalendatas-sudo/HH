@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Appearance,
   KeyboardAvoidingView,
@@ -14,12 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-
-const activityItems = [
-  { id: 1, time: '09:30', label: 'Workout', tint: '#8b5cf6' },
-  { id: 2, time: '12:10', label: 'Focus block', tint: '#38bdf8' },
-  { id: 3, time: '18:45', label: 'Walk', tint: '#34d399' },
-];
+import {
+  DEFAULT_ACTIVITIES,
+  loadActivityData,
+  saveActivityData,
+  type Activity,
+} from './activity-storage';
 
 const activityOptions = [
   { label: 'Workout', tint: '#8b5cf6' },
@@ -37,33 +37,100 @@ const weekDays = [
   { label: 'S', name: 'Sunday' },
 ];
 
+function getDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getCurrentWeekDates(today: Date): Date[] {
+  const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  return weekDays.map((_, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    return date;
+  });
+}
+
 export default function ActivityScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme !== 'light';
   const palette = isDark ? darkPalette : lightPalette;
-  const [activities, setActivities] = useState(activityItems);
-  const [completedItems, setCompletedItems] = useState<number[]>([]);
+  const [activities, setActivities] = useState<Activity[]>(DEFAULT_ACTIVITIES);
+  const [completionsByDate, setCompletionsByDate] = useState<Record<string, number[]>>({});
+  const [isStorageReady, setIsStorageReady] = useState(false);
+  const [storageError, setStorageError] = useState('');
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(activityOptions[0]);
   const [activityTime, setActivityTime] = useState('19:00');
   const [formError, setFormError] = useState('');
-  const nextActivityId = useRef(activityItems.length + 1);
+  const nextActivityId = useRef(DEFAULT_ACTIVITIES.length + 1);
+  const today = new Date();
+  const todayKey = getDateKey(today);
+  const currentWeekDates = getCurrentWeekDates(today);
+  const completedItems = completionsByDate[todayKey] ?? [];
   const upcomingItems = activities
     .filter((item) => !completedItems.includes(item.id))
     .sort((first, second) => first.time.localeCompare(second.time));
   const doneItems = activities
     .filter((item) => completedItems.includes(item.id))
     .sort((first, second) => first.time.localeCompare(second.time));
-  const todayIndex = (new Date().getDay() + 6) % 7;
+  const todayIndex = (today.getDay() + 6) % 7;
   const dailyGoal = activities.length;
   const goalProgress = dailyGoal === 0 ? 0 : doneItems.length / dailyGoal;
 
+  const loadSavedData = useCallback(async () => {
+    setStorageError('');
+    setIsStorageReady(false);
+    try {
+      const data = await loadActivityData();
+      setActivities(data.activities);
+      setCompletionsByDate(data.completionsByDate);
+      nextActivityId.current =
+        data.activities.reduce((maxId, activity) => Math.max(maxId, activity.id), 0) + 1;
+      setIsStorageReady(true);
+    } catch (error) {
+      console.error('Failed to load saved activity data.', error);
+      setStorageError('Could not load saved activities. Tap to retry.');
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadSavedData();
+  }, [loadSavedData]);
+
+  const saveQueue = useRef(Promise.resolve());
+  useEffect(() => {
+    if (!isStorageReady) {
+      return;
+    }
+
+    const data = { activities, completionsByDate };
+    saveQueue.current = saveQueue.current
+      .then(() => saveActivityData(data))
+      .then(() => setStorageError(''))
+      .catch((error: unknown) => {
+        console.error('Failed to save activity data.', error);
+        setStorageError('Could not save your latest changes. Check storage and try again.');
+      });
+  }, [activities, completionsByDate, isStorageReady]);
+
   const toggleActivity = (id: number) => {
-    setCompletedItems((currentItems) =>
-      currentItems.includes(id)
+    setCompletionsByDate((current) => {
+      const currentItems = current[todayKey] ?? [];
+      const nextItems = currentItems.includes(id)
         ? currentItems.filter((item) => item !== id)
-        : [...currentItems, id],
-    );
+        : [...currentItems, id];
+      const updated = { ...current };
+      if (nextItems.length === 0) {
+        delete updated[todayKey];
+      } else {
+        updated[todayKey] = nextItems;
+      }
+      return updated;
+    });
   };
 
   const addActivity = () => {
@@ -97,6 +164,39 @@ export default function ActivityScreen() {
     <ThemedView style={[styles.container, { backgroundColor: palette.background }]}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
+          {!isStorageReady && (
+            <Pressable
+              accessibilityRole={storageError ? 'button' : undefined}
+              disabled={!storageError}
+              onPress={() => void loadSavedData()}
+              style={[
+                styles.storageNotice,
+                {
+                  backgroundColor: palette.surface,
+                  borderColor: storageError ? '#ef4444' : palette.border,
+                },
+              ]}>
+              <ThemedText
+                type="small"
+                style={[
+                  styles.storageNoticeText,
+                  { color: storageError ? '#ef4444' : palette.mutedText },
+                ]}>
+                {storageError || 'Loading saved activities…'}
+              </ThemedText>
+            </Pressable>
+          )}
+          {storageError && isStorageReady && (
+            <ThemedView
+              style={[
+                styles.storageNotice,
+                { backgroundColor: palette.surface, borderColor: '#ef4444' },
+              ]}>
+              <ThemedText type="small" style={[styles.storageNoticeText, { color: '#ef4444' }]}>
+                {storageError}
+              </ThemedText>
+            </ThemedView>
+          )}
           <ThemedView
             style={[
               styles.headerCard,
@@ -208,16 +308,21 @@ export default function ActivityScreen() {
             <ThemedView style={styles.weekChart}>
               {weekDays.map((day, index) => {
                 const isToday = index === todayIndex;
-                const progress = isToday ? goalProgress : 0;
+                const dateKey = getDateKey(currentWeekDates[index]);
+                const completedCount = (completionsByDate[dateKey] ?? []).filter((id) =>
+                  activities.some((activity) => activity.id === id),
+                ).length;
+                const progress = dailyGoal === 0 ? 0 : Math.min(completedCount / dailyGoal, 1);
+                const hasHistory = dateKey in completionsByDate;
 
                 return (
                   <ThemedView
                     key={`${day.name}-${index}`}
                     style={styles.dayColumn}
                     accessibilityLabel={
-                      isToday
-                        ? `${day.name}, today, ${doneItems.length} of ${dailyGoal} activities complete`
-                        : `${day.name}, no activity history tracked`
+                      hasHistory
+                        ? `${day.name}${isToday ? ', today' : ''}, ${completedCount} of ${dailyGoal} activities complete`
+                        : `${day.name}${isToday ? ', today' : ''}, no activity history`
                     }>
                     <ThemedView
                       style={[
@@ -250,7 +355,7 @@ export default function ActivityScreen() {
             </ThemedView>
 
             <ThemedText type="small" style={[styles.weekNote, { color: palette.mutedText }]}>
-              Today updates as you complete activities. Earlier days aren’t tracked yet.
+              Completed activities are saved by date and shown here.
             </ThemedText>
           </ThemedView>
 
@@ -268,13 +373,17 @@ export default function ActivityScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Add activity"
+                disabled={!isStorageReady}
                 onPress={() => {
                   setFormError('');
                   setIsAddModalVisible(true);
                 }}
                 style={({ pressed }) => [
                   styles.addButton,
-                  { backgroundColor: palette.eyebrow, opacity: pressed ? 0.75 : 1 },
+                  {
+                    backgroundColor: palette.eyebrow,
+                    opacity: !isStorageReady ? 0.5 : pressed ? 0.75 : 1,
+                  },
                 ]}>
                 <ThemedText type="default" style={styles.addButtonText}>
                   + Add
@@ -295,13 +404,14 @@ export default function ActivityScreen() {
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: false }}
                   accessibilityLabel={`Mark ${item.label} complete`}
+                  disabled={!isStorageReady}
                   onPress={() => toggleActivity(item.id)}
                   style={({ pressed }) => [
                     styles.activityRow,
                     {
                       backgroundColor: palette.row,
                       borderColor: palette.border,
-                      opacity: pressed ? 0.72 : 1,
+                      opacity: !isStorageReady ? 0.5 : pressed ? 0.72 : 1,
                     },
                   ]}>
                   <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
@@ -339,6 +449,7 @@ export default function ActivityScreen() {
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: true }}
                     accessibilityLabel={`Mark ${item.label} incomplete`}
+                    disabled={!isStorageReady}
                     onPress={() => toggleActivity(item.id)}
                     style={({ pressed }) => [
                       styles.activityRow,
@@ -346,7 +457,7 @@ export default function ActivityScreen() {
                       {
                         backgroundColor: palette.row,
                         borderColor: palette.border,
-                        opacity: pressed ? 0.72 : 1,
+                        opacity: !isStorageReady ? 0.5 : pressed ? 0.72 : 1,
                       },
                     ]}>
                     <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
@@ -521,6 +632,15 @@ const styles = StyleSheet.create({
     gap: 18,
     justifyContent: 'center',
     paddingVertical: 16,
+  },
+  storageNotice: {
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  storageNoticeText: {
+    fontSize: 12,
   },
   headerCard: {
     borderRadius: 30,
