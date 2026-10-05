@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Appearance, Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -11,32 +11,55 @@ const activityItems = [
 ];
 
 export default function ActivityScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme !== 'light';
+  const palette = isDark ? darkPalette : lightPalette;
+
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor: palette.background }]}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.headerCard}>
+        <ThemedView
+          style={[
+            styles.headerCard,
+            { backgroundColor: palette.surface, borderColor: palette.border },
+          ]}>
           <ThemedView style={styles.headerTopRow}>
-            <ThemedText type="small" style={styles.labelText}>
+            <ThemedText type="small" style={[styles.labelText, { color: palette.eyebrow }]}>
               Today
             </ThemedText>
 
-            <ThemedView style={styles.badge}>
-              <ThemedText type="small" style={styles.badgeText}>
-                +18%
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              onPress={() => Appearance.setColorScheme(isDark ? 'light' : 'dark')}
+              style={({ pressed }) => [
+                styles.modeToggle,
+                {
+                  backgroundColor: palette.toggleBackground,
+                  borderColor: palette.border,
+                  opacity: pressed ? 0.75 : 1,
+                },
+              ]}>
+              <ThemedText type="small" style={[styles.modeToggleText, { color: palette.text }]}>
+                {isDark ? '☀  Light' : '☾  Dark'}
               </ThemedText>
-            </ThemedView>
+            </Pressable>
           </ThemedView>
 
-          <ThemedText type="subtitle" style={styles.title}>
+          <ThemedText type="subtitle" style={[styles.title, { color: palette.text }]}>
             Activity
           </ThemedText>
 
           <ThemedView style={styles.statsRow}>
-            <ThemedView style={styles.statCard}>
-              <ThemedText type="small" style={styles.statLabel}>
+            <ThemedView
+              style={[
+                styles.statCard,
+                { backgroundColor: palette.surfaceInset, borderColor: palette.border },
+              ]}>
+              <ThemedText type="small" style={[styles.statLabel, { color: palette.mutedText }]}>
                 Streak
               </ThemedText>
-              <ThemedText type="title" style={styles.statValue}>
+              <ThemedText type="title" style={[styles.statValue, { color: palette.text }]}>
                 12d
               </ThemedText>
             </ThemedView>
@@ -52,18 +75,29 @@ export default function ActivityScreen() {
           </ThemedView>
         </ThemedView>
 
-        <ThemedView style={styles.panel}>
-          <ThemedText type="smallBold" style={styles.panelTitle}>
+        <ThemedView
+          style={[
+            styles.panel,
+            { backgroundColor: palette.surface, borderColor: palette.border },
+          ]}>
+          <ThemedText type="smallBold" style={[styles.panelTitle, { color: palette.text }]}>
             Upcoming
           </ThemedText>
 
           {activityItems.map((item) => (
-            <ThemedView key={item.label} style={styles.activityRow}>
+            <ThemedView
+              key={item.label}
+              style={[
+                styles.activityRow,
+                { backgroundColor: palette.row, borderColor: palette.border },
+              ]}>
               <ThemedView style={[styles.dot, { backgroundColor: item.tint }]} />
-              <ThemedText type="default" style={styles.activityTime}>
+              <ThemedText
+                type="default"
+                style={[styles.activityTime, { color: palette.mutedText }]}>
                 {item.time}
               </ThemedText>
-              <ThemedText type="default" style={styles.activityLabel}>
+              <ThemedText type="default" style={[styles.activityLabel, { color: palette.text }]}>
                 {item.label}
               </ThemedText>
             </ThemedView>
@@ -74,12 +108,35 @@ export default function ActivityScreen() {
   );
 }
 
+const darkPalette = {
+  background: '#070b17',
+  surface: '#0f172a',
+  surfaceInset: '#111827',
+  row: '#0b1220',
+  border: 'rgba(148, 163, 184, 0.18)',
+  text: '#f8fafc',
+  mutedText: '#cbd5e1',
+  eyebrow: '#a5b4fc',
+  toggleBackground: '#1e293b',
+};
+
+const lightPalette = {
+  background: '#f4f6fb',
+  surface: '#ffffff',
+  surfaceInset: '#f1f5f9',
+  row: '#f8fafc',
+  border: '#dbe2ee',
+  text: '#172033',
+  mutedText: '#5f6b7d',
+  eyebrow: '#635bdb',
+  toggleBackground: '#eef2ff',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    backgroundColor: '#070b17',
   },
   safeArea: {
     flex: 1,
@@ -89,9 +146,7 @@ const styles = StyleSheet.create({
   headerCard: {
     borderRadius: 30,
     padding: 22,
-    backgroundColor: '#0f172a',
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.18)',
     shadowColor: '#8b5cf6',
     shadowOpacity: 0.18,
     shadowRadius: 24,
@@ -104,26 +159,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+  modeToggle: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  modeToggleText: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+  },
   labelText: {
-    color: '#a5b4fc',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: 'rgba(52, 211, 153, 0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(52, 211, 153, 0.55)',
-  },
-  badgeText: {
-    color: '#6ee7b7',
-    fontSize: 11,
-    letterSpacing: 0.4,
-  },
   title: {
-    color: '#f8fafc',
     marginBottom: 18,
     fontWeight: '700',
   },
@@ -133,12 +184,10 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#111827',
     borderRadius: 18,
     paddingVertical: 16,
     paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.14)',
   },
   statCardAccent: {
     flex: 1,
@@ -152,7 +201,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
   },
   statLabel: {
-    color: '#cbd5e1',
     marginBottom: 8,
   },
   statLabelAccent: {
@@ -160,7 +208,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statValue: {
-    color: '#f8fafc',
     fontSize: 32,
     lineHeight: 38,
   },
@@ -170,31 +217,26 @@ const styles = StyleSheet.create({
     lineHeight: 38,
   },
   panel: {
-    backgroundColor: '#101827',
     borderRadius: 26,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.18)',
     shadowColor: '#020617',
     shadowOpacity: 0.24,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
   },
   panelTitle: {
-    color: '#e2e8f0',
     marginBottom: 14,
     letterSpacing: 0.7,
   },
   activityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0b1220',
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.08)',
   },
   dot: {
     width: 10,
@@ -208,10 +250,8 @@ const styles = StyleSheet.create({
   },
   activityTime: {
     width: 62,
-    color: '#cbd5e1',
   },
   activityLabel: {
     flex: 1,
-    color: '#f8fafc',
   },
 });
