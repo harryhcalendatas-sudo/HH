@@ -29,6 +29,8 @@ export default function ActivityScreen() {
   const upcomingItems = activityItems.filter((item) => !completedItems.includes(item.label));
   const doneItems = activityItems.filter((item) => completedItems.includes(item.label));
   const todayIndex = (new Date().getDay() + 6) % 7;
+  const dailyGoal = activityItems.length;
+  const goalProgress = doneItems.length / dailyGoal;
 
   const toggleActivity = (label: string) => {
     setCompletedItems((currentItems) =>
@@ -97,6 +99,43 @@ export default function ActivityScreen() {
                 </ThemedText>
               </ThemedView>
             </ThemedView>
+          </ThemedView>
+
+          <ThemedView
+            style={[
+              styles.goalPanel,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}>
+            <ThemedView style={styles.goalHeader}>
+              <ThemedText type="smallBold" style={[styles.goalTitle, { color: palette.text }]}>
+                Daily goal
+              </ThemedText>
+              <ThemedText type="small" style={[styles.goalCount, { color: palette.eyebrow }]}>
+                {doneItems.length} of {dailyGoal}
+              </ThemedText>
+            </ThemedView>
+            <ThemedView
+              accessibilityRole="progressbar"
+              accessibilityLabel="Daily activity goal"
+              accessibilityValue={{ min: 0, max: dailyGoal, now: doneItems.length }}
+              style={[styles.goalTrack, { backgroundColor: palette.row }]}>
+              <ThemedView
+                style={[
+                  styles.goalFill,
+                  {
+                    width: `${goalProgress * 100}%`,
+                    backgroundColor: palette.eyebrow,
+                  },
+                ]}
+              />
+            </ThemedView>
+            <ThemedText type="small" style={[styles.goalNote, { color: palette.mutedText }]}>
+              {goalProgress === 1
+                ? 'Daily goal complete. Great work!'
+                : `${dailyGoal - doneItems.length} ${
+                    dailyGoal - doneItems.length === 1 ? 'activity' : 'activities'
+                  } left to reach your goal`}
+            </ThemedText>
           </ThemedView>
 
           <ThemedView
@@ -391,6 +430,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.24,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
+  },
+  goalPanel: {
+    borderRadius: 24,
+    padding: 18,
+    borderWidth: 1,
+  },
+  goalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  goalTitle: {
+    letterSpacing: 0.4,
+  },
+  goalCount: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  goalTrack: {
+    height: 10,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  goalFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  goalNote: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 10,
   },
   weekPanel: {
     borderRadius: 26,
